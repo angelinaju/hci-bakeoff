@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Bakeoff 3">
+  <title>Bakeoff 3 Prototypes</title>
+  <style>
+    body {
+      margin: 0;
+      padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      background: #f4f4f6;
+      color: #1c1c1e;
+      -webkit-text-size-adjust: 100%;
+    }
+    h1 { font-size: 26px; margin: 8px 0 4px; }
+    p { color: #555; line-height: 1.45; font-size: 15px; }
+    a.proto {
+      display: block;
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin: 12px 0;
+      color: inherit;
+      text-decoration: none;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+    }
+    a.proto strong { display: block; font-size: 18px; }
+    a.proto span { color: #666; font-size: 14px; }
+    code { background: #e6e6ea; padding: 1px 5px; border-radius: 4px; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <h1>COSC 559 &ndash; Bakeoff 3</h1>
+  <p>Open a prototype, then use Share &rarr; <em>Add to Home Screen</em> to run it full-screen.</p>
+
+  <a class="proto" href="Prototype1_Handwriting_Enter/">
+    <strong>1. Handwriting Enter</strong>
+    <span>Draw a letter, then tap ENTER</span>
+  </a>
+  <a class="proto" href="Prototype2_Expandable_Groups/">
+    <strong>2. Expandable Groups</strong>
+    <span>Pick a letter group, then a letter</span>
+  </a>
+  <a class="proto" href="Prototype3_Circular_Keyboard/">
+    <strong>3. Circular Keyboard</strong>
+    <span>Tap or slide around the ring</span>
+  </a>
+  <a class="proto" href="Prototype4_QWERTY_Swipe/">
+    <strong>4. QWERTY Swipe</strong>
+    <span>Tap keys, or swipe and pause on each letter</span>
+  </a>
+  <a class="proto" href="Prototype5_Press_Drag_Circular/">
+    <strong>5. Press &amp; Drag Circular</strong>
+    <span>Hold the center, drag to a letter, release</span>
+  </a>
+
+  <p>The gray input square should measure 1&Prime; with a ruler. If it doesn't, add
+    <code>?ppi=163</code> (or your device's points per inch) to a prototype's URL.
+    Add <code>?trials=10</code> to change the number of phrases.</p>
+</body>
+</html>

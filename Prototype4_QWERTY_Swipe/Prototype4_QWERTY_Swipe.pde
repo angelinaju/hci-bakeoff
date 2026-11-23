@@ -1,7 +1,3 @@
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Random;
-
 String[] phrases; //contains all of the phrases
 int totalTrialNum = 2; //the total number of phrases to be tested - set this low for testing. Might be ~10 for the real bakeoff!
 int currTrialNum = 0; // the current trial number (indexes into trials array above)
@@ -13,32 +9,38 @@ float lettersExpectedTotal = 0; //a running total of the number of letters expec
 float errorsTotal = 0; //a running total of the number of errors (when hitting next)
 String currentPhrase = ""; //the current target phrase
 String currentTyped = ""; //what the user has typed so far
-final int DPIofYourDeviceScreen = 120; //you will need to look up the DPI or PPI of your device to make sure you get the right scale. Or play around with this value.
-final float sizeOfInputArea = DPIofYourDeviceScreen*1; //aka, 1.0 inches square!
+int DPIofYourDeviceScreen = 120; //you will need to look up the DPI or PPI of your device to make sure you get the right scale. Or play around with this value.
+float sizeOfInputArea = DPIofYourDeviceScreen*1; //aka, 1.0 inches square!
 PImage watch;
 PImage finger;
 
 // Prototype 4: QWERTY tap and deliberate swipe input.
-final String[] rows = {"qwertyuiop", "asdfghjkl", "zxcvbnm"};
-final int dwellMillis = 90;
+String[] rows = {"qwertyuiop", "asdfghjkl", "zxcvbnm"};
+int dwellMillis = 90;
 boolean swiping = false;
 String swipeText = "";
-char hoverLetter = 0;
+String hoverLetter = "";
 int hoverSince = 0;
 boolean hoverRecorded = false;
 
 //You can modify anything in here. This is just a basic implementation.
 void setup()
 {
+  size(800, 800); //Sets the size of the app. You should modify this to your device's native size. Many phones today are 1080 wide by 1920 tall.
   //noCursor();
   watch = loadImage("watchhand3smaller.png");
   //finger = loadImage("pngeggSmaller.png"); //not using this
   phrases = loadStrings("phrases2.txt"); //load the phrase set into memory
-  Collections.shuffle(Arrays.asList(phrases), new Random()); //randomize the order of the phrases with no seed
-  //Collections.shuffle(Arrays.asList(phrases), new Random(100)); //randomize the order of the phrases with seed 100; same order every time, useful for testing
+  //randomSeed(100); //randomize the order of the phrases with seed 100; same order every time, useful for testing
+  //randomize the order of the phrases with no seed
+  for (int i = phrases.length - 1; i > 0; i--) {
+    int j = int(random(i + 1));
+    String tmp = phrases[i];
+    phrases[i] = phrases[j];
+    phrases[j] = tmp;
+  }
  
   //orientation(LANDSCAPE); //can also be PORTRAIT - sets orientation on android device
-  size(800, 800); //Sets the size of the app. You should modify this to your device's native size. Many phones today are 1080 wide by 1920 tall.
   textFont(createFont("Arial", 20)); //set the font to arial 24. Creating fonts is expensive, so make difference sizes once in setup, not draw
   noStroke(); //my code doesn't use any strokes
 }
@@ -74,14 +76,14 @@ void draw()
   rect(width/2-sizeOfInputArea/2, height/2-sizeOfInputArea/2, sizeOfInputArea, sizeOfInputArea); //input area should be 1" by 1"
   
 
-  if (startTime==0 & !mousePressed)
+  if (startTime==0 && !mousePressed)
   {
     fill(128);
     textAlign(CENTER);
     text("Click to start time!", 280, 150); //display this messsage until the user clicks!
   }
 
-  if (startTime==0 & mousePressed)
+  if (startTime==0 && mousePressed)
   {
     nextTrial(); //start the trials!
   }
@@ -115,15 +117,15 @@ float topEdge() { return height/2.0f-sizeOfInputArea/2; }
 float keyWidth() { return sizeOfInputArea/10; }
 float rowHeight() { return sizeOfInputArea*.23f; }
 float rowLeft(int r) { return width/2.0f-rows[r].length()*keyWidth()/2; }
-float rowTop(int r) { return topEdge()+sizeOfInputArea*.09f+r*rowHeight(); }
+float rowTop(int r) { return topEdge()+sizeOfInputArea*0.09+r*rowHeight(); }
 
-char letterAt(float x,float y) {
+String letterAt(float x,float y) {
   for (int r=0;r<rows.length;r++) {
     float dx=x-rowLeft(r), dy=y-rowTop(r);
     if (dx>=0 && dx<rows[r].length()*keyWidth() && dy>=0 && dy<rowHeight())
-      return rows[r].charAt(int(dx/keyWidth()));
+      return rows[r].substring(int(dx/keyWidth()), int(dx/keyWidth())+1);
   }
-  return 0;
+  return "";
 }
 
 void drawKeyboard() {
@@ -133,23 +135,23 @@ void drawKeyboard() {
   noStroke();
   fill(32,36,43); rect(x,y,s,s);
   textAlign(CENTER,CENTER);
-  fill(255); textSize(s*.065f);
+  fill(255); textSize(s*0.065);
   String preview=swipeText;
   if (preview.length()>14) preview=preview.substring(preview.length()-14);
-  text(preview,x+s/2,y+s*.045f);
+  text(preview,x+s/2,y+s*0.045);
   for (int r=0;r<rows.length;r++) {
     for (int i=0;i<rows[r].length();i++) {
-      char c=rows[r].charAt(i);
+      String c=rows[r].substring(i, i+1);
       float kx=rowLeft(r)+i*keyWidth(), ky=rowTop(r);
-      fill(swiping && c==hoverLetter ? color(37,99,235) : color(65,75,89));
+      fill(swiping && c.equals(hoverLetter) ? color(37,99,235) : color(65,75,89));
       rect(kx+.5f,ky+.5f,keyWidth()-1,rowHeight()-1,2);
-      fill(255); textSize(s*.075f);
-      text(str(c),kx+keyWidth()/2,ky+rowHeight()/2);
+      fill(255); textSize(s*0.075);
+      text(c,kx+keyWidth()/2,ky+rowHeight()/2);
     }
   }
   fill(52,93,151); rect(x+1,y+s*.79f,s*.70f-2,s*.21f-1,3);
   fill(149,63,70); rect(x+s*.70f+1,y+s*.79f,s*.30f-2,s*.21f-1,3);
-  fill(255); textSize(s*.085f);
+  fill(255); textSize(s*0.085);
   text("SPACE",x+s*.35f,y+s*.895f);
   text("DEL",x+s*.85f,y+s*.895f);
   popStyle();
@@ -160,21 +162,21 @@ boolean didMouseClick(float x,float y,float w,float h) {
 }
 
 void resetSwipe() {
-  swiping=false; swipeText=""; hoverLetter=0; hoverRecorded=false;
+  swiping=false; swipeText=""; hoverLetter=""; hoverRecorded=false;
 }
 
-void recordLetter(char c) {
-  if(c!=0) swipeText+=c;
+void recordLetter(String c) {
+  if(c.length()>0) swipeText+=c;
   hoverRecorded=true;
 }
 
 // Pausing briefly on an intermediate key selects it; passing over keys does not.
 void updateSwipe() {
-  char c=letterAt(mouseX,mouseY);
-  if(c!=hoverLetter) {
+  String c=letterAt(mouseX,mouseY);
+  if(!c.equals(hoverLetter)) {
     hoverLetter=c; hoverSince=millis(); hoverRecorded=false;
   }
-  if(c!=0 && !hoverRecorded && millis()-hoverSince>=dwellMillis) recordLetter(c);
+  if(c.length()>0 && !hoverRecorded && millis()-hoverSince>=dwellMillis) recordLetter(c);
 }
 
 void mousePressed() {
@@ -187,8 +189,8 @@ void mousePressed() {
     if(currentTyped.length()>0) currentTyped=currentTyped.substring(0,currentTyped.length()-1);
     return;
   }
-  char c=letterAt(mouseX,mouseY);
-  if(c!=0) {
+  String c=letterAt(mouseX,mouseY);
+  if(c.length()>0) {
     swiping=true; hoverLetter=c; hoverSince=millis(); recordLetter(c);
   }
 }
@@ -198,7 +200,7 @@ void mouseDragged() { if(swiping) updateSwipe(); }
 void mouseReleased() {
   if(!swiping) return;
   updateSwipe();
-  if(hoverLetter!=0 && finishTime==0) {
+  if(hoverLetter.length()>0 && finishTime==0) {
     if(!hoverRecorded) recordLetter(hoverLetter);
     currentTyped+=swipeText;
   }
@@ -212,16 +214,16 @@ void nextTrial()
 
   if (startTime!=0 && finishTime==0) //in the middle of trials
   {
-    System.out.println("==================");
-    System.out.println("Phrase " + (currTrialNum+1) + " of " + totalTrialNum); //output
-    System.out.println("Target phrase: " + currentPhrase); //output
-    System.out.println("Phrase length: " + currentPhrase.length()); //output
-    System.out.println("User typed: " + currentTyped); //output
-    System.out.println("User typed length: " + currentTyped.length()); //output
-    System.out.println("Number of errors: " + computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim())); //trim whitespace and compute errors
-    System.out.println("Time taken on this trial: " + (millis()-lastTime)); //output
-    System.out.println("Time taken since beginning: " + (millis()-startTime)); //output
-    System.out.println("==================");
+    println("==================");
+    println("Phrase " + (currTrialNum+1) + " of " + totalTrialNum); //output
+    println("Target phrase: " + currentPhrase); //output
+    println("Phrase length: " + currentPhrase.length()); //output
+    println("User typed: " + currentTyped); //output
+    println("User typed length: " + currentTyped.length()); //output
+    println("Number of errors: " + computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim())); //trim whitespace and compute errors
+    println("Time taken on this trial: " + (millis()-lastTime)); //output
+    println("Time taken since beginning: " + (millis()-startTime)); //output
+    println("==================");
     lettersExpectedTotal+=currentPhrase.trim().length();
     lettersEnteredTotal+=currentTyped.trim().length();
     errorsTotal+=computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim());
@@ -231,22 +233,22 @@ void nextTrial()
   if (currTrialNum == totalTrialNum-1) //check to see if experiment just finished
   {
     finishTime = millis();
-    System.out.println("==================");
-    System.out.println("Trials complete!"); //output
-    System.out.println("Total time taken: " + (finishTime - startTime)); //output
-    System.out.println("Total letters entered: " + lettersEnteredTotal); //output
-    System.out.println("Total letters expected: " + lettersExpectedTotal); //output
-    System.out.println("Total errors entered: " + errorsTotal); //output
+    println("==================");
+    println("Trials complete!"); //output
+    println("Total time taken: " + (finishTime - startTime)); //output
+    println("Total letters entered: " + lettersEnteredTotal); //output
+    println("Total letters expected: " + lettersExpectedTotal); //output
+    println("Total errors entered: " + errorsTotal); //output
 
     float wpm = (lettersEnteredTotal/5.0f)/((finishTime - startTime)/60000f); //FYI - 60K is number of milliseconds in minute
     float freebieErrors = lettersExpectedTotal*.05; //no penalty if errors are under 5% of chars
     float penalty = max(errorsTotal-freebieErrors, 0) * .5f;
     
-    System.out.println("Raw WPM: " + wpm); //output
-    System.out.println("Freebie errors: " + freebieErrors); //output
-    System.out.println("Penalty: " + penalty);
-    System.out.println("WPM w/ penalty: " + (wpm-penalty)); //yes, minus, becuase higher WPM is better
-    System.out.println("==================");
+    println("Raw WPM: " + wpm); //output
+    println("Freebie errors: " + freebieErrors); //output
+    println("Penalty: " + penalty);
+    println("WPM w/ penalty: " + (wpm-penalty)); //yes, minus, becuase higher WPM is better
+    println("==================");
 
     currTrialNum++; //increment by one so this mesage only appears once when all trials are done
     return;
@@ -254,7 +256,7 @@ void nextTrial()
 
   if (startTime==0) //first trial starting now
   {
-    System.out.println("Trials beginning! Starting timer..."); //output we're done
+    println("Trials beginning! Starting timer..."); //output we're done
     startTime = millis(); //start the timer!
   } 
   else
