@@ -16,6 +16,7 @@ PImage finger;
 
 //Variables for my silly implementation. You can delete this:
 String[] letterGroups = {"abcde", "fghij", "klmno", "pqrst", "uvwxyz"};
+String[] expandedLetters = {"eabcd ", "fighj ", "klomn ", "pqrts ", "vwxyuz"};
 int activeGroup = -1;
 
 //You can modify anything in here. This is just a basic implementation.
@@ -108,10 +109,17 @@ void draw()
 
 // Two-column keyboard: six selection cells plus a full-width bottom button.
 String keyLabel(int index) {
-  if (index == 6) return activeGroup == -1 ? "delete" : "back";
+  if (index == 6) return activeGroup == -1 ? "delete" : "cancel";
   if (activeGroup == -1) return index < 5 ? letterGroups[index] : "space";
-  String letters = letterGroups[activeGroup];
-  return index < letters.length() ? letters.substring(index, index+1) : "";
+  return expandedLetters[activeGroup].substring(index, index+1).trim();
+}
+
+int cellAt(float px, float py) {
+  float x=(width-sizeOfInputArea)/2, y=(height-sizeOfInputArea)/2;
+  if (px<x || px>=x+sizeOfInputArea || py<y || py>=y+sizeOfInputArea) return -1;
+  int row=int((py-y)/(sizeOfInputArea/4));
+  int col=int((px-x)/(sizeOfInputArea/2));
+  return row==3 ? 6 : row*2+col;
 }
 
 void drawKeyboard() {
@@ -119,12 +127,14 @@ void drawKeyboard() {
   float y = (height-sizeOfInputArea)/2;
   float w = sizeOfInputArea/2;
   float h = sizeOfInputArea/4;
+  int hover = activeGroup != -1 ? cellAt(mouseX, mouseY) : -1;
   textAlign(CENTER, CENTER);
   for (int i=0; i<7; i++) {
     String label = keyLabel(i);
     float bx = x+(i%2)*w, by = y+(i/2)*h;
     float bw = i==6 ? sizeOfInputArea : w;
-    fill(label.length()==0 ? color(45) : i==6 ? color(145,55,60) : label.equals("space") ? color(45,105,80) : color(45,90,150));
+    if (i==hover && label.length()>0) fill(i==6 ? color(210,80,85) : color(90,160,235));
+    else fill(label.length()==0 ? color(45) : i==6 ? color(145,55,60) : label.equals("space") ? color(45,105,80) : color(45,90,150));
     rect(bx+1, by+1, bw-2, h-2, 3);
     fill(255);
     textSize(label.length()>1 ? sizeOfInputArea*.105 : sizeOfInputArea*.17);
@@ -145,24 +155,21 @@ void mousePressed() {
     nextTrial();
     return;
   }
-  float x=(width-sizeOfInputArea)/2, y=(height-sizeOfInputArea)/2;
-  if (!didMouseClick(x,y,sizeOfInputArea,sizeOfInputArea)) return;
-  int row=int((mouseY-y)/(sizeOfInputArea/4));
-  int col=int((mouseX-x)/(sizeOfInputArea/2));
-  int index=row==3 ? 6 : row*2+col;
-  if (index==6) {
-    if (activeGroup!=-1) activeGroup=-1;
-    else if (currentTyped.length()>0) currentTyped=currentTyped.substring(0,currentTyped.length()-1);
-  } else if (activeGroup==-1) {
-    if (index==5) currentTyped+=" ";
-    else activeGroup=index;
-  } else {
-    String letters=letterGroups[activeGroup];
-    if (index<letters.length()) {
-      currentTyped+=letters.substring(index, index+1);
-      activeGroup=-1;
-    }
+  int cell=cellAt(mouseX, mouseY);
+  if (cell==6) {
+    if (currentTyped.length()>0) currentTyped=currentTyped.substring(0,currentTyped.length()-1);
+  } else if (cell==5) {
+    currentTyped+=" ";
+  } else if (cell>=0) {
+    activeGroup=cell;
   }
+}
+
+void mouseReleased() {
+  if (activeGroup==-1) return;
+  int cell=cellAt(mouseX, mouseY);
+  if (cell>=0 && cell<6) currentTyped+=keyLabel(cell);
+  activeGroup=-1;
 }
 
 void nextTrial()

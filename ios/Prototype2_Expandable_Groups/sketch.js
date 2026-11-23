@@ -1,4 +1,5 @@
 const letterGroups = ['abcde', 'fghij', 'klmno', 'pqrst', 'uvwxyz'];
+const expandedLetters = ['eabcd ', 'fighj ', 'klomn ', 'pqrts ', 'vwxyuz'];
 let activeGroup = -1;
 
 function setup() {
@@ -31,10 +32,17 @@ function draw() {
 
 // Two-column keyboard: six selection cells plus a full-width bottom button.
 function keyLabel(index) {
-  if (index == 6) return activeGroup == -1 ? 'delete' : 'back';
+  if (index == 6) return activeGroup == -1 ? 'delete' : 'cancel';
   if (activeGroup == -1) return index < 5 ? letterGroups[index] : 'space';
-  const letters = letterGroups[activeGroup];
-  return index < letters.length ? letters.substring(index, index + 1) : '';
+  return expandedLetters[activeGroup].charAt(index).trim();
+}
+
+function cellAtPointer() {
+  const x = inputX(), y = inputY();
+  if (!didTouch(x, y, sizeOfInputArea, sizeOfInputArea)) return -1;
+  const row = Math.floor((pointerY - y) / (sizeOfInputArea / 4));
+  const col = Math.floor((pointerX - x) / (sizeOfInputArea / 2));
+  return row == 3 ? 6 : row * 2 + col;
 }
 
 function drawKeyboard() {
@@ -42,6 +50,7 @@ function drawKeyboard() {
   const y = inputY();
   const w = sizeOfInputArea / 2;
   const h = sizeOfInputArea / 4;
+  const hover = activeGroup != -1 ? cellAtPointer() : -1;
   push();
   noStroke();
   textAlign(CENTER, CENTER);
@@ -49,7 +58,8 @@ function drawKeyboard() {
     const label = keyLabel(i);
     const bx = x + (i % 2) * w, by = y + Math.floor(i / 2) * h;
     const bw = i == 6 ? sizeOfInputArea : w;
-    fill(label.length == 0 ? color(45) : i == 6 ? color(145, 55, 60) : label == 'space' ? color(45, 105, 80) : color(45, 90, 150));
+    if (i == hover && label.length > 0) fill(i == 6 ? color(210, 80, 85) : color(90, 160, 235));
+    else fill(label.length == 0 ? color(45) : i == 6 ? color(145, 55, 60) : label == 'space' ? color(45, 105, 80) : color(45, 90, 150));
     rect(bx + 1, by + 1, bw - 2, h - 2, 3);
     fill(255);
     textSize(label.length > 1 ? sizeOfInputArea * .105 : sizeOfInputArea * .17);
@@ -69,22 +79,19 @@ function pointerPressed() {
     nextTrial();
     return;
   }
-  const x = inputX(), y = inputY();
-  if (!didTouch(x, y, sizeOfInputArea, sizeOfInputArea)) return;
-  const row = Math.floor((pointerY - y) / (sizeOfInputArea / 4));
-  const col = Math.floor((pointerX - x) / (sizeOfInputArea / 2));
-  const index = row == 3 ? 6 : row * 2 + col;
-  if (index == 6) {
-    if (activeGroup != -1) activeGroup = -1;
-    else if (currentTyped.length > 0) currentTyped = currentTyped.substring(0, currentTyped.length - 1);
-  } else if (activeGroup == -1) {
-    if (index == 5) currentTyped += ' ';
-    else activeGroup = index;
-  } else {
-    const letters = letterGroups[activeGroup];
-    if (index < letters.length) {
-      currentTyped += letters.charAt(index);
-      activeGroup = -1;
-    }
+  const cell = cellAtPointer();
+  if (cell == 6) {
+    if (currentTyped.length > 0) currentTyped = currentTyped.substring(0, currentTyped.length - 1);
+  } else if (cell == 5) {
+    currentTyped += ' ';
+  } else if (cell >= 0) {
+    activeGroup = cell;
   }
+}
+
+function pointerReleased() {
+  if (activeGroup == -1) return;
+  const cell = cellAtPointer();
+  if (cell >= 0 && cell < 6) currentTyped += keyLabel(cell);
+  activeGroup = -1;
 }
